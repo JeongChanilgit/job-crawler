@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>채용공고 크롤러 · 셋업 체크리스트</title>
+<style>
+  :root{
+    --bg:#0f1220; --card:#1a1f35; --card2:#232a45; --line:#2e375a;
+    --txt:#e8ecf6; --muted:#9aa3c4; --accent:#6c8cff; --green:#3ecf8e; --yellow:#f7b955; --red:#ff6b6b;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:linear-gradient(160deg,#0f1220,#131a30);color:var(--txt);
+    font-family:"Pretendard","Segoe UI",system-ui,sans-serif;line-height:1.6;padding:32px 16px 80px}
+  .wrap{max-width:880px;margin:0 auto}
+  h1{font-size:26px;margin:0 0 4px}
+  .sub{color:var(--muted);margin:0 0 20px;font-size:14px}
+  .legend{display:flex;gap:14px;flex-wrap:wrap;font-size:13px;color:var(--muted);margin-bottom:18px}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;vertical-align:middle}
+  .b-must{background:rgba(255,107,107,.16);color:var(--red);border:1px solid rgba(255,107,107,.35)}
+  .b-rec{background:rgba(247,185,85,.16);color:var(--yellow);border:1px solid rgba(247,185,85,.35)}
+  .b-opt{background:rgba(154,163,196,.16);color:var(--muted);border:1px solid rgba(154,163,196,.3)}
+  /* progress */
+  .progress{position:sticky;top:0;background:rgba(15,18,32,.92);backdrop-filter:blur(6px);
+    padding:12px 0 14px;margin-bottom:18px;z-index:5;border-bottom:1px solid var(--line)}
+  .bar{height:10px;background:var(--card2);border-radius:999px;overflow:hidden}
+  .bar > div{height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--green));transition:width .3s}
+  .ptext{font-size:13px;color:var(--muted);margin-top:6px}
+  /* card */
+  .card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:18px 20px;margin-bottom:16px}
+  .card h2{font-size:18px;margin:0 0 4px;display:flex;align-items:center;gap:8px}
+  .card .why{color:var(--muted);font-size:13px;margin:0 0 12px}
+  ul.steps{list-style:none;padding:0;margin:0}
+  ul.steps li{display:flex;gap:10px;align-items:flex-start;padding:7px 0;border-top:1px dashed var(--line)}
+  ul.steps li:first-child{border-top:none}
+  input[type=checkbox]{appearance:none;min-width:20px;height:20px;margin-top:2px;border:2px solid var(--accent);
+    border-radius:6px;cursor:pointer;position:relative;background:transparent;transition:.15s}
+  input[type=checkbox]:checked{background:var(--green);border-color:var(--green)}
+  input[type=checkbox]:checked::after{content:"✓";position:absolute;color:#0f1220;font-weight:900;
+    left:3px;top:-3px;font-size:15px}
+  .stxt{flex:1}
+  .stxt .done{color:var(--muted);text-decoration:line-through}
+  a{color:var(--accent);text-decoration:none;font-weight:600}
+  a:hover{text-decoration:underline}
+  code{background:var(--card2);padding:2px 7px;border-radius:6px;font-size:13px;color:#cdd6ff}
+  .copy{cursor:pointer;border:1px solid var(--line);background:var(--card2);color:#cdd6ff;
+    border-radius:6px;padding:1px 8px;font-size:12px;margin-left:4px}
+  .copy:active{background:var(--accent);color:#0f1220}
+  .note{background:rgba(108,140,255,.08);border:1px solid rgba(108,140,255,.25);border-radius:10px;
+    padding:10px 14px;font-size:13px;color:#c7d0f0;margin-top:10px}
+  .mine{background:rgba(62,207,142,.08);border:1px solid rgba(62,207,142,.3);border-radius:10px;
+    padding:10px 14px;font-size:13px;margin-top:10px}
+  small{color:var(--muted)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>📋 채용공고 크롤러 — 내가 할 일 체크리스트</h1>
+  <p class="sub">매일 09:00 KST 자동 수집 시스템을 켜기 위해 <b>사용자가</b> 해야 할 것 전부.
+    체크 상태는 브라우저에 자동 저장됩니다.</p>
+  <div class="legend">
+    <span><span class="badge b-must">필수</span> 없으면 안 돌아감</span>
+    <span><span class="badge b-rec">권장</span> 핵심 수집원</span>
+    <span><span class="badge b-opt">선택</span> 나중/미구현</span>
+  </div>
+
+  <div class="progress">
+    <div class="bar"><div id="pbar"></div></div>
+    <div class="ptext"><span id="pcount">0</span> / <span id="ptotal">0</span> 완료 · <span id="ppct">0%</span></div>
+  </div>
+
+  <!-- 1. 노션 -->
+  <div class="card">
+    <h2>1. 노션 토큰 + DB 연결 <span class="badge b-must">필수</span></h2>
+    <p class="why">이게 없으면 어디에도 적재가 안 됩니다. 토큰 발급은 즉시(승인 대기 없음).</p>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="n1"><span class="stxt"><a href="https://www.notion.so/my-integrations" target="_blank">notion.so/my-integrations</a> → <b>New integration</b> → Internal → 이름 <code>job-crawler</code> → 워크스페이스 선택 → Submit</span></li>
+      <li><input type="checkbox" data-k="n2"><span class="stxt"><b>Internal Integration Secret</b> 복사 → 이게 <code>NOTION_TOKEN</code> <button class="copy" data-c="NOTION_TOKEN">복사</button></span></li>
+      <li><input type="checkbox" data-k="n3"><span class="stxt">노션에서 <b>채용공고 자동수집 (Job Crawler)</b> DB 페이지 열기 → 우상단 <code>•••</code> → <b>Connections(연결)</b> → 방금 만든 <code>job-crawler</code> 검색해서 연결 <span class="badge b-must">자주 빠뜨림</span></span></li>
+      <li><input type="checkbox" data-k="n4"><span class="stxt">(선택) DB를 취업준비 허브 페이지 아래로 드래그해 정리</span></li>
+    </ul>
+    <div class="note">DB ID는 이미 발급됨: <code>76922a22ee364f6cac1879575284dae5</code>
+      <button class="copy" data-c="76922a22ee364f6cac1879575284dae5">복사</button> — 따로 안 만들어도 됩니다.</div>
+  </div>
+
+  <!-- 2. data.go.kr -->
+  <div class="card">
+    <h2>2. 공공데이터포털 키 (워크넷 + 공공기관) <span class="badge b-must">필수·최고가치</span></h2>
+    <p class="why">합법·안정적이고 GitHub Actions에서 100% 도는 핵심 수집원. <b>인증키는 계정당 1개</b>이고, 서비스마다 활용신청만 따로 합니다.</p>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="d1"><span class="stxt"><a href="https://www.data.go.kr" target="_blank">data.go.kr</a> 회원가입 / 로그인</span></li>
+      <li><input type="checkbox" data-k="d2"><span class="stxt"><a href="https://www.data.go.kr/data/3038225/openapi.do" target="_blank">워크넷 채용정보 API</a> → <b>활용신청</b></span></li>
+      <li><input type="checkbox" data-k="d3"><span class="stxt"><a href="https://www.data.go.kr/data/15125273/openapi.do" target="_blank">공공기관 채용정보 API</a> → <b>활용신청</b> (같은 계정, 같은 키 공용)</span></li>
+      <li><input type="checkbox" data-k="d4"><span class="stxt">승인 후 <b>마이페이지 → 인증키</b>에서 <b>일반 인증키(Decoding)</b> 복사 → <code>DATA_GO_KR_KEY</code> <button class="copy" data-c="DATA_GO_KR_KEY">복사</button></span></li>
+    </ul>
+    <div class="note">승인은 보통 자동(즉시)이지만 1~2일 걸릴 수 있음. 개발계정 일 1,000건. <b>Encoding이 아니라 Decoding 키</b>를 쓰세요.</div>
+  </div>
+
+  <!-- 3. 사람인 -->
+  <div class="card">
+    <h2>3. 사람인 오픈 API 키 <span class="badge b-rec">권장</span></h2>
+    <p class="why">민간 채용의 핵심 물량. 승인제(일 500건).</p>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="s1"><span class="stxt"><a href="https://oapi.saramin.co.kr/join" target="_blank">oapi.saramin.co.kr/join</a> 이용신청</span></li>
+      <li><input type="checkbox" data-k="s2"><span class="stxt">승인 후 <b>access-key</b> 발급 → <code>SARAMIN_ACCESS_KEY</code> <button class="copy" data-c="SARAMIN_ACCESS_KEY">복사</button></span></li>
+    </ul>
+    <div class="note">개인 신청이 반려되면 <code>api@saramin.co.kr</code>로 용도(개인 구직용) 문의.</div>
+  </div>
+
+  <!-- 4. 원티드 -->
+  <div class="card">
+    <h2>4. 원티드 OpenAPI 키 <span class="badge b-opt">선택·나중</span></h2>
+    <p class="why">받아만 두세요. 코드 본체는 OpenAPI 스키마 확정 후 제가 구현 → 그 다음 켜집니다.</p>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="w1"><span class="stxt"><a href="https://openapi.wanted.jobs/" target="_blank">openapi.wanted.jobs</a>에서 키 발급 → <code>WANTED_API_KEY</code> <button class="copy" data-c="WANTED_API_KEY">복사</button></span></li>
+    </ul>
+  </div>
+
+  <!-- 5. GitHub Secrets -->
+  <div class="card">
+    <h2>5. GitHub 저장소 Secrets 등록 <span class="badge b-must">필수 (레포 푸시 후)</span></h2>
+    <p class="why">레포는 제가 비공개로 만들어 푸시해 드립니다. 그 다음 사용자가 키를 Secrets에 넣으면 끝.</p>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="g0"><span class="stxt">제게 "레포 만들어 푸시해줘"라고 알려주기 (gh 로그인 계정 <code>JeongChanilgit</code> 사용)</span></li>
+      <li><input type="checkbox" data-k="g1"><span class="stxt">저장소 <b>Settings → Secrets and variables → Actions → New repository secret</b></span></li>
+      <li><input type="checkbox" data-k="g2"><span class="stxt"><code>NOTION_TOKEN</code> 등록</span></li>
+      <li><input type="checkbox" data-k="g3"><span class="stxt"><code>NOTION_DATABASE_ID</code> = <code>76922a22ee364f6cac1879575284dae5</code></span></li>
+      <li><input type="checkbox" data-k="g4"><span class="stxt"><code>DATA_GO_KR_KEY</code> 등록</span></li>
+      <li><input type="checkbox" data-k="g5"><span class="stxt"><code>SARAMIN_ACCESS_KEY</code> 등록</span></li>
+      <li><input type="checkbox" data-k="g6"><span class="stxt"><code>WANTED_API_KEY</code> 등록 (있으면)</span></li>
+    </ul>
+  </div>
+
+  <!-- 6. 실행 -->
+  <div class="card">
+    <h2>6. 첫 실행 테스트 <span class="badge b-rec">권장</span></h2>
+    <ul class="steps">
+      <li><input type="checkbox" data-k="r1"><span class="stxt">저장소 <b>Actions 탭 → 채용공고 수집 → Run workflow</b>로 수동 1회 실행</span></li>
+      <li><input type="checkbox" data-k="r2"><span class="stxt">노션 DB에 공고가 들어오는지 확인 → 이후 매일 09:00 KST 자동</span></li>
+    </ul>
+    <div class="mine">🤖 <b>제 몫:</b> 레포 생성·푸시 / 키 받은 뒤 워크넷·사람인·공공기관 실호출로 응답 필드 맞추기 /
+      원티드 스키마 구현 / 인크루트·잡코리아·캐치 실 DOM 셀렉터 확정 후 활성화. 사용자는 위 1~6만 하면 됩니다.</div>
+  </div>
+
+  <p style="text-align:center;color:var(--muted);font-size:12px">
+    가장 급한 것 → <b>1번(노션)·2번(공공데이터)</b>. 이 둘만 돼도 워크넷+공공기관 공고가 매일 쌓이기 시작합니다.</p>
+</div>
+
+<script>
+  const KEY='jobcrawler-setup-v1';
+  const saved=JSON.parse(localStorage.getItem(KEY)||'{}');
+  const boxes=[...document.querySelectorAll('input[type=checkbox]')];
+  document.getElementById('ptotal').textContent=boxes.length;
+  function refresh(){
+    const done=boxes.filter(b=>b.checked).length;
+    const pct=Math.round(done/boxes.length*100);
+    document.getElementById('pbar').style.width=pct+'%';
+    document.getElementById('pcount').textContent=done;
+    document.getElementById('ppct').textContent=pct+'%';
+  }
+  boxes.forEach(b=>{
+    const k=b.dataset.k;
+    if(saved[k]) b.checked=true;
+    b.nextElementSibling.classList.toggle('done',b.checked);
+    b.addEventListener('change',()=>{
+      saved[k]=b.checked; localStorage.setItem(KEY,JSON.stringify(saved));
+      b.nextElementSibling.classList.toggle('done',b.checked); refresh();
+    });
+  });
+  document.querySelectorAll('.copy').forEach(btn=>{
+    btn.addEventListener('click',()=>{
+      navigator.clipboard.writeText(btn.dataset.c);
+      const o=btn.textContent; btn.textContent='복사됨!'; setTimeout(()=>btn.textContent=o,1000);
+    });
+  });
+  refresh();
+</script>
+</body>
+</html>
