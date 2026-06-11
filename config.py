@@ -41,11 +41,16 @@ MAX_PAGES_PER_KEYWORD = 3
 PAGE_SIZE = 50
 
 # --- 시크릿 (환경변수 / GitHub Secrets) ---
-NOTION_TOKEN = os.getenv("NOTION_TOKEN", "")
-NOTION_DATABASE_ID = os.getenv("NOTION_DATABASE_ID", "")
-DATA_GO_KR_KEY = os.getenv("DATA_GO_KR_KEY", "")
-SARAMIN_ACCESS_KEY = os.getenv("SARAMIN_ACCESS_KEY", "")
-WANTED_API_KEY = os.getenv("WANTED_API_KEY", "")
+def _clean(v: str) -> str:
+    """환경변수 값에서 공백·BOM(\\ufeff) 제거 — gh secret/notepad 가 붙이는 BOM 방지."""
+    return (v or "").strip().strip("﻿").strip()
+
+
+NOTION_TOKEN = _clean(os.getenv("NOTION_TOKEN", ""))
+NOTION_DATABASE_ID = _clean(os.getenv("NOTION_DATABASE_ID", ""))
+DATA_GO_KR_KEY = _clean(os.getenv("DATA_GO_KR_KEY", ""))
+SARAMIN_ACCESS_KEY = _clean(os.getenv("SARAMIN_ACCESS_KEY", ""))
+WANTED_API_KEY = _clean(os.getenv("WANTED_API_KEY", ""))
 
 # --- 요청 공통 ---
 HTTP_TIMEOUT = 20.0
